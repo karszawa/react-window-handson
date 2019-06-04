@@ -1,15 +1,10 @@
 import React from "react";
 import styled from "styled-components";
-
-const Container = styled.section`
-  display: flex;
-  flex-direction: column;
-`;
+import { FixedSizeList } from "react-window";
 
 const RowContainer = styled.div`
   position: relative;
   width: 100px;
-  height: 100px;
 `;
 
 const RowName = styled.div`
@@ -27,27 +22,29 @@ const RowImage = styled.img`
   height: 100%;
 `;
 
-const Row = ({ name, url }) => (
-  <RowContainer>
-    <RowName>{name}</RowName>
-    <RowImage src={url} />
+const Row = ({ index, style }) => (
+  <RowContainer style={style}>
+    <RowName>{items[index].name}</RowName>
+    <RowImage src={items[index].url} />
   </RowContainer>
 );
 
-export default function App() {
-  const rows = new Array(1000)
-    .fill(0)
-    .map((_, j) => (
-      <Row
-        key={j}
-        name={`photo-${j}`}
-        url={`https://picsum.photos/id/${j}/200/300`}
-      />
-    ));
+const items = new Array(100).fill(0).map((_, j) => ({
+  name: `photo-${j}`,
+  url: `https://picsum.photos/id/${j}/200/300`
+}));
 
+export default function App() {
   return (
     <div className="App">
-      <Container>{rows}</Container>
+      <FixedSizeList
+        height={1000}
+        width={100}
+        itemSize={120}
+        itemCount={items.length}
+      >
+        {Row}
+      </FixedSizeList>
     </div>
   );
 }
