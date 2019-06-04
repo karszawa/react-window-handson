@@ -1,6 +1,7 @@
-import React from "react";
+import React, { memo } from "react";
+import memorize from "memorize-one";
 import styled from "styled-components";
-import { FixedSizeList } from "react-window";
+import { FixedSizeList, areEqual } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 const RowContainer = styled.div`
@@ -23,47 +24,16 @@ const RowImage = styled.img`
   height: 100%;
 `;
 
-const List = ({ items, moreItemsLoading, hasNextPage, loadMoreItems }) => {
-  const Row = ({ index, style }) => {
-    const itemLoading = index >= items.length;
-
-    if (itemLoading) {
-      return <RowContainer style={{ ...style, backgroundColor: "grey" }} />;
-    } else {
-      return (
-        <RowContainer style={style}>
-          <RowName>{items[index].name}</RowName>
-          <RowImage src={items[index].url} />
-        </RowContainer>
-      );
-    }
-  };
-
-  const itemCount = hasNextPage ? items.length + 1 : items.length;
-
-  console.log(items.length);
+const Row = memo(({ data, index, style }) => {
+  const item = data[index];
 
   return (
-    <InfiniteLoader
-      isItemLoaded={index => index < items.length - 1}
-      itemCount={itemCount}
-      loadMoreItems={loadMoreItems}
-    >
-      {({ onItemsRendered, ref }) => (
-        <FixedSizeList
-          height={1000}
-          width={100}
-          itemCount={itemCount}
-          itemSize={120}
-          onItemsRendered={onItemsRendered}
-          ref={ref}
-        >
-          {Row}
-        </FixedSizeList>
-      )}
-    </InfiniteLoader>
+    <RowContainer style={style}>
+      <RowName>{item.name}</RowName>
+      <RowImage src={item.url} />
+    </RowContainer>
   );
-};
+});
 
 const ENDPOINT = "https://api.thecatapi.com/v1/images/search";
 const LIMIT = 10;
@@ -93,14 +63,21 @@ export default class App extends React.Component {
     });
   }
 
+  componentDidMount() {
+    this.loadMoreItems(0);
+  }
+
   render() {
     return (
-      <List
-        items={this.state.items}
-        moreItemsLoading={this.state.moreItemsLoading}
-        hasNextPage={true}
-        loadMoreItems={this.loadMoreItems.bind(this)}
-      />
+      <FixedSizeList
+        height={1000}
+        width={100}
+        itemCount={this.state.items.length}
+        itemData={this.state.items}
+        itemSize={100}
+      >
+        {Row}
+      </FixedSizeList>
     );
   }
 }
